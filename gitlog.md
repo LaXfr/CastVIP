@@ -13,5 +13,6 @@ Follow the Conventional Commits specification:
 
 | Commit Hash | Type | Summary |
 | :--- | :--- | :--- |
+| `509038a` | `feat` | Configure live Base Sepolia credentials and dual contract address mapping |
 | `596e84d` | `docs` | Record initial feature commit in gitlog.md |
 | `70d8e89` | `feat` | Implement token-gated VIP portal with pure JavaScript and Thirdweb v5 |
