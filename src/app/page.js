@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ConnectButton, ClaimButton, useActiveAccount, useReadContract } from "thirdweb/react";
 import { balanceOf } from "thirdweb/extensions/erc721";
 import { client, contract } from "./client";
@@ -7,6 +8,7 @@ import { baseSepolia } from "thirdweb/chains";
 
 export default function HomePage() {
   const account = useActiveAccount();
+  const [copiedKey, setCopiedKey] = useState(false);
 
   const {
     data: nftBalance,
@@ -23,210 +25,348 @@ export default function HomePage() {
   // BigInt safe comparison invariant
   const hasMembership = nftBalance && nftBalance > 0n;
 
+  const handleCopyKey = () => {
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText("VIP-BASE-2026");
+      setCopiedKey(true);
+      setTimeout(() => setCopiedKey(false), 2000);
+    }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100">
-      {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-tr from-amber-500 to-yellow-300 flex items-center justify-center font-black text-slate-950 text-xl shadow-lg shadow-amber-500/20">
-              VIP
-            </div>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-                Foundry VIP Portal
-                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono">
-                  Base Sepolia
-                </span>
-              </h1>
-              <p className="text-xs text-slate-400">Token-Gated Web3 Membership</p>
+    <div className="min-h-screen bg-[#050811] text-slate-100 relative overflow-hidden flex flex-col justify-between selection:bg-indigo-500/30 selection:text-white">
+      {/* Ambient Lighting Accents */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-indigo-600/15 blur-[130px] rounded-full"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -bottom-40 right-1/4 w-[500px] h-[350px] bg-blue-600/10 blur-[140px] rounded-full"
+      />
+
+      {/* Top Navigation Bar */}
+      <header className="max-w-5xl w-full mx-auto px-6 py-6 flex items-center justify-between border-b border-white/[0.06] relative z-10">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-500 to-blue-500 p-px shadow-lg shadow-indigo-500/20 shrink-0">
+            <div className="w-full h-full bg-[#070b18] rounded-[11px] flex items-center justify-center">
+              <svg
+                width="18"
+                height="18"
+                className="w-4.5 h-4.5 shrink-0 text-indigo-400"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+              </svg>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <ConnectButton
-              client={client}
-              chain={baseSepolia}
-              theme="dark"
-            />
+          <div>
+            <span className="font-bold text-sm tracking-wider text-white font-mono uppercase block">
+              AURA // VIP
+            </span>
           </div>
+          <div className="hidden sm:inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-xs font-mono text-blue-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shrink-0" />
+            Base Sepolia • 84532
+          </div>
+        </div>
+
+        <div className="flex items-center">
+          <ConnectButton
+            client={client}
+            chain={baseSepolia}
+            theme="dark"
+          />
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-10 flex flex-col items-center justify-center">
-        {/* State 1: Disconnected */}
-        {!account && (
-          <div className="max-w-2xl w-full text-center py-12 px-6 rounded-2xl border border-slate-800 bg-slate-900/40 shadow-2xl backdrop-blur-sm">
-            <div className="inline-flex p-3 rounded-2xl bg-amber-500/10 text-amber-400 border border-amber-500/20 mb-6">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-            </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight sm:text-4xl">
-              Exclusive VIP Membership Portal
-            </h2>
-            <p className="mt-4 text-base text-slate-400 max-w-xl mx-auto">
-              Connect your Web3 wallet to verify your ERC-721 Membership Pass on Base Sepolia. Unlocked members receive exclusive alpha access, governance rights, and priority protocol perks.
-            </p>
-            <div className="mt-8 flex justify-center">
-              <ConnectButton
-                client={client}
-                chain={baseSepolia}
-                theme="dark"
-              />
-            </div>
-          </div>
-        )}
+      {/* Spacious Centerpiece Card */}
+      <main className="max-w-2xl w-full mx-auto my-auto px-6 py-12 relative z-10">
+        <div className="bg-slate-900/60 backdrop-blur-xl border border-white/[0.08] rounded-3xl p-8 sm:p-12 shadow-[0_20px_70px_-15px_rgba(0,0,0,0.8)]">
+          <span className="text-xs uppercase tracking-[0.2em] text-indigo-400 font-semibold mb-3 block">
+            Membership Portal
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-4">
+            Exclusive Token-Gated Lounge
+          </h1>
+          <p className="text-slate-400 text-base leading-relaxed mb-8">
+            Access restricted protocol resources, alpha intelligence feeds, and priority perks authenticated on Base Sepolia.
+          </p>
 
-        {/* State 2: Connected & Checking Balance */}
-        {account && isCheckingBalance && (
-          <div className="max-w-md w-full text-center py-12 px-6 rounded-2xl border border-slate-800 bg-slate-900/40">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-400 mx-auto mb-4"></div>
-            <h3 className="text-lg font-semibold text-white">Verifying Membership Pass...</h3>
-            <p className="text-sm text-slate-400 mt-2 font-mono">
-              Querying Base Sepolia for balance of {account.address.slice(0, 6)}...{account.address.slice(-4)}
-            </p>
-          </div>
-        )}
-
-        {/* State 3: Connected & Not a Member */}
-        {account && !isCheckingBalance && !hasMembership && (
-          <div className="max-w-xl w-full rounded-2xl border border-red-500/20 bg-slate-900/60 p-8 shadow-2xl">
-            <div className="flex items-center gap-3 text-red-400 mb-4">
-              <span className="p-2 rounded-xl bg-red-500/10 border border-red-500/20">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          {/* STATE 1: Disconnected */}
+          {!account && (
+            <div className="bg-slate-950/60 border border-white/[0.06] rounded-2xl p-8 text-center">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-white/[0.03] border border-white/[0.08] flex items-center justify-center">
+                <svg
+                  width="22"
+                  height="22"
+                  className="w-5.5 h-5.5 shrink-0 text-slate-400"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
                 </svg>
-              </span>
-              <div>
-                <h3 className="text-xl font-bold text-white">VIP Membership Pass Required</h3>
-                <p className="text-xs text-red-300">Access Restricted • No Token Detected</p>
+              </div>
+              <h2 className="text-base font-semibold text-white mb-2">
+                Authentication Required
+              </h2>
+              <p className="text-sm text-slate-400 mb-6 max-w-sm mx-auto leading-relaxed">
+                Connect your Web3 wallet on Base Sepolia to verify your ERC-721 Membership Pass.
+              </p>
+              <div className="flex justify-center">
+                <ConnectButton
+                  client={client}
+                  chain={baseSepolia}
+                  theme="dark"
+                />
               </div>
             </div>
+          )}
 
-            <p className="text-sm text-slate-300 mb-6">
-              Your wallet (<span className="font-mono text-amber-300">{account.address.slice(0, 6)}...{account.address.slice(-4)}</span>) does not currently hold a VIP Membership Pass on Base Sepolia. Claim your free pass below to immediately unlock the portal.
-            </p>
-
-            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 mb-6 flex items-center justify-between">
-              <div>
-                <span className="text-xs text-slate-400 uppercase tracking-wider block">Pass Details</span>
-                <span className="font-semibold text-white">VIP Founding Member Pass (ERC-721)</span>
-              </div>
-              <div className="text-right">
-                <span className="text-xs text-slate-400 uppercase tracking-wider block">Price</span>
-                <span className="font-semibold text-emerald-400">Free (Testnet)</span>
-              </div>
+          {/* STATE 2a: Connected & Checking Balance */}
+          {account && isCheckingBalance && (
+            <div className="bg-slate-950/60 border border-white/[0.06] rounded-2xl p-8 text-center">
+              <div className="w-10 h-10 mx-auto mb-4 border-2 border-indigo-500/20 border-t-indigo-400 rounded-full animate-spin shrink-0" />
+              <p className="text-sm font-medium text-slate-200">
+                Verifying On-Chain Membership...
+              </p>
+              <p className="text-xs text-slate-500 font-mono mt-1">
+                Querying Base Sepolia for {account.address.slice(0, 6)}...{account.address.slice(-4)}
+              </p>
             </div>
+          )}
 
-            <div className="flex justify-center">
-              <ClaimButton
-                contractAddress={contract.address}
-                chain={contract.chain}
-                client={client}
-                claimParams={{
-                  type: "ERC721",
-                  quantity: 1n,
-                }}
-                onTransactionConfirmed={() => {
-                  refetch();
-                }}
-                theme="dark"
-              >
-                Claim VIP Pass (1n)
-              </ClaimButton>
-            </div>
-          </div>
-        )}
-
-        {/* State 4: Connected & Membership Active */}
-        {account && !isCheckingBalance && hasMembership && (
-          <div className="w-full space-y-8">
-            {/* VIP Status Banner */}
-            <div className="rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/40 via-slate-900/60 to-emerald-950/40 p-8 shadow-2xl relative overflow-hidden">
-              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-semibold uppercase tracking-wider mb-3">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    VIP Member Verified
+          {/* STATE 2b: Connected & Locked / Non-Holder */}
+          {account && !isCheckingBalance && !hasMembership && (
+            <div className="space-y-6">
+              <div className="bg-slate-950/60 border border-white/[0.06] rounded-2xl p-6">
+                <div className="flex items-center justify-between pb-4 mb-4 border-b border-white/[0.06]">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                      <svg
+                        width="16"
+                        height="16"
+                        className="w-4 h-4 shrink-0 text-amber-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="16" x2="12.01" y2="16" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-sm font-semibold text-white">Membership Pass Required</h2>
+                      <p className="text-xs text-slate-400 font-mono">Status: Non-Holder</p>
+                    </div>
                   </div>
-                  <h2 className="text-3xl font-extrabold text-white">
-                    Welcome to the VIP Portal
-                  </h2>
-                  <p className="text-sm text-slate-300 mt-1">
-                    Connected Wallet: <span className="font-mono text-amber-300">{account.address}</span>
-                  </p>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
+                    Locked
+                  </span>
                 </div>
 
-                <div className="flex items-center gap-4 bg-slate-950/80 px-6 py-4 rounded-xl border border-slate-800">
-                  <div className="text-center">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider block">Pass Balance</span>
-                    <span className="text-2xl font-black text-amber-400 font-mono">
-                      {nftBalance?.toString()}
+                <div className="grid grid-cols-3 gap-3 text-center mb-6">
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 block mb-1">Tier</span>
+                    <span className="text-xs font-semibold text-slate-200">ERC-721 Pass</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 block mb-1">Network</span>
+                    <span className="text-xs font-semibold text-blue-400">Base Sepolia</span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-500 block mb-1">Price</span>
+                    <span className="text-xs font-semibold text-emerald-400">Free Claim</span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-400 text-center mb-5">
+                  Connected as <span className="font-mono text-slate-300">{account.address.slice(0, 6)}...{account.address.slice(-4)}</span>. Claim your complimentary VIP pass below to unlock portal access.
+                </p>
+
+                <div className="flex justify-center">
+                  <ClaimButton
+                    contractAddress={contract.address}
+                    chain={contract.chain}
+                    client={client}
+                    claimParams={{
+                      type: "ERC721",
+                      quantity: 1n,
+                    }}
+                    onTransactionConfirmed={() => {
+                      refetch();
+                    }}
+                    theme="dark"
+                  >
+                    Claim VIP Membership Pass
+                  </ClaimButton>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* STATE 3: Unlocked VIP Member Portal */}
+          {account && !isCheckingBalance && hasMembership && (
+            <div>
+              {/* Luxury Status Banner */}
+              <div className="bg-emerald-950/30 border border-emerald-500/30 rounded-2xl p-6 mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div className="flex items-center space-x-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                    <svg
+                      width="20"
+                      height="20"
+                      className="w-5 h-5 shrink-0 text-emerald-400"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                  </div>
+                  <div>
+                    <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-semibold block">
+                      VERIFIED VIP HOLDER
+                    </span>
+                    <p className="text-xs text-slate-400 font-mono mt-0.5">
+                      {account.address.slice(0, 8)}...{account.address.slice(-6)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 sm:text-right">
+                  <div className="px-3.5 py-1.5 rounded-xl bg-slate-950/80 border border-emerald-500/20">
+                    <span className="text-[10px] text-slate-400 uppercase tracking-wider block">Balance</span>
+                    <span className="text-sm font-bold text-emerald-300 font-mono">
+                      {nftBalance?.toString() || "1"} Pass(es)
                     </span>
                   </div>
-                  <div className="h-8 w-px bg-slate-800"></div>
-                  <div className="text-center">
-                    <span className="text-xs text-slate-400 uppercase tracking-wider block">Network</span>
-                    <span className="text-sm font-bold text-blue-400">Base Sepolia</span>
+                </div>
+              </div>
+
+              {/* 2-Column Luxury Perks Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                {/* Perk 1: Reward Key */}
+                <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 hover:border-white/[0.12] transition">
+                  <div className="flex items-center justify-between mb-2">
+                    <h2 className="text-sm font-semibold text-white">Exclusive Reward Key</h2>
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                      Tier 1
+                    </span>
                   </div>
+                  <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                    Use this active authentication token to access private channels and member rewards.
+                  </p>
+                  <button
+                    onClick={handleCopyKey}
+                    type="button"
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/[0.08] hover:border-indigo-500/40 transition group cursor-pointer"
+                  >
+                    <span className="font-mono text-xs font-semibold text-indigo-300 tracking-wider">
+                      VIP-BASE-2026
+                    </span>
+                    <span className="text-[11px] text-slate-400 group-hover:text-white transition flex items-center gap-1.5">
+                      {copiedKey ? (
+                        <span className="text-emerald-400">Copied!</span>
+                      ) : (
+                        <>
+                          <svg
+                            width="14"
+                            height="14"
+                            className="w-3.5 h-3.5 shrink-0"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                          </svg>
+                          Copy
+                        </>
+                      )}
+                    </span>
+                  </button>
+                </div>
+
+                {/* Perk 2: On-Chain Verification */}
+                <div className="bg-white/[0.02] border border-white/[0.06] rounded-2xl p-5 hover:border-white/[0.12] transition flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <h2 className="text-sm font-semibold text-white">On-Chain Contract</h2>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        BaseScan
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-400 mb-4 leading-relaxed">
+                      Verify the official DropERC721 smart contract and provenance records on Base Sepolia.
+                    </p>
+                  </div>
+                  <a
+                    href={`https://sepolia.basescan.org/address/${contract.address}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-white/[0.08] hover:border-blue-500/40 transition group text-xs text-slate-300 hover:text-white"
+                  >
+                    <span className="font-mono text-xs text-slate-400 group-hover:text-slate-200 truncate pr-2">
+                      {contract.address.slice(0, 10)}...{contract.address.slice(-8)}
+                    </span>
+                    <span className="inline-flex items-center gap-1 text-blue-400 group-hover:text-blue-300 shrink-0 font-medium">
+                      Verify
+                      <svg
+                        width="14"
+                        height="14"
+                        className="w-3.5 h-3.5 shrink-0"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                        <polyline points="15 3 21 3 21 9" />
+                        <line x1="10" y1="14" x2="21" y2="3" />
+                      </svg>
+                    </span>
+                  </a>
                 </div>
               </div>
             </div>
-
-            {/* Exclusive Perks Grid */}
-            <div>
-              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                Exclusive VIP Perks & Rewards
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 hover:border-amber-500/30 transition-all group">
-                  <div className="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold mb-4 group-hover:scale-110 transition-transform">
-                    01
-                  </div>
-                  <h4 className="text-lg font-bold text-white mb-2">Alpha Protocol Feeds</h4>
-                  <p className="text-sm text-slate-400">
-                    Direct access to private smart contract repositories, zero-knowledge testbeds, and early protocol releases.
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 hover:border-amber-500/30 transition-all group">
-                  <div className="h-10 w-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center font-bold mb-4 group-hover:scale-110 transition-transform">
-                    02
-                  </div>
-                  <h4 className="text-lg font-bold text-white mb-2">Gas Subsidies</h4>
-                  <p className="text-sm text-slate-400">
-                    Smart contract relayer credits covering gas execution across all Foundry testnet experiments on Base.
-                  </p>
-                </div>
-
-                <div className="p-6 rounded-2xl border border-slate-800 bg-slate-900/40 hover:border-amber-500/30 transition-all group">
-                  <div className="h-10 w-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold mb-4 group-hover:scale-110 transition-transform">
-                    03
-                  </div>
-                  <h4 className="text-lg font-bold text-white mb-2">Private Governance</h4>
-                  <p className="text-sm text-slate-400">
-                    Voting weight on upcoming smart contract deployments and community pool resource allocations.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Contract Info Footer */}
-            <div className="p-4 rounded-xl bg-slate-900/30 border border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-400 font-mono">
-              <span>Contract: {contract.address}</span>
-              <a
-                href={`https://sepolia.basescan.org/address/${contract.address}`}
-                target="_blank"
-                rel="noreferrer"
-                className="text-amber-400 hover:underline flex items-center gap-1"
-              >
-                View on BaseScan &rarr;
-              </a>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </main>
+
+      {/* Subtle Footer */}
+      <footer className="max-w-5xl w-full mx-auto px-6 py-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 font-mono gap-3 relative z-10">
+        <div>
+          <span>AURA PROTOCOL // BASE SEPOLIA</span>
+        </div>
+        <div className="flex items-center gap-4">
+          <span>Chain ID: 84532</span>
+          <span>•</span>
+          <span>Thirdweb SDK v5</span>
+        </div>
+      </footer>
     </div>
   );
 }

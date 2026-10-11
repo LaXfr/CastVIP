@@ -41,3 +41,17 @@
 - **Symptom:** `next dev` hung indefinitely when requesting `http://localhost:3000`.
 - **Root Cause:** Next.js 16 starter template included experimental `cacheComponents: true` and `partialPrefetching: true` in `next.config.mjs`.
 - **Fix:** Simplified `next.config.mjs` to remove experimental caching flags; dev server compiles in 751ms with HTTP 200 responses.
+
+### 6. Oversized SVG Overflow & Missing Tailwind CSS Compilation
+- **Symptom:** Inline SVGs expanded beyond `100vw`/`100vh`, overflowing the viewport and distorting layout.
+- **Root Cause:**
+  1. Tailwind CSS v4 requires `@tailwindcss/turbopack` loader rules in `next.config.mjs` to compile utilities from `@import "tailwindcss";`. Without this loader, utility classes (`w-8`, `h-8`, etc.) were omitted from the output CSS bundle.
+  2. Inline SVG elements lacked explicit HTML `width`/`height` attributes, causing browsers to default to full-bleed scaling.
+- **Fix:**
+  1. Configured `@tailwindcss/turbopack` loader in `next.config.mjs`, compiling 28KB+ of complete Tailwind utility CSS.
+  2. Added defensive CSS in `src/app/globals.css`:
+     ```css
+     html, body { overflow-x: hidden; background-color: #030712; color: #f9fafb; }
+     svg { max-width: 100%; height: auto; }
+     ```
+  3. Audited and constrained every `<svg>` in `src/app/page.js` with explicit HTML dimensions (`width="..." height="..."`) and Tailwind classes (`className="w-... h-... shrink-0"`).
