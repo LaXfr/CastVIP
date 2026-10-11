@@ -9,13 +9,9 @@ Follow the Conventional Commits specification:
 
 ---
 
-## Planned Initial Commits
+## Commit History
 
 | Commit Hash | Type | Summary |
 | :--- | :--- | :--- |
-| `[PENDING]` | `chore` | Initial commit: project documentation and tracking setup |
-| `[PENDING]` | `chore` | Scaffold Next.js App Router project in pure JavaScript with Tailwind |
-| `[PENDING]` | `feat` | Add Thirdweb SDK client and layout provider configuration |
-| `[PENDING]` | `feat` | Implement token-gated dashboard with ConnectButton and ClaimButton |
-| `[PENDING]` | `fix` | Ensure BigInt evaluation for balance checks and prevent hydration errors |
-| `[PENDING]` | `docs` | Finalize deployment instructions and handoff notes |
+| `596e84d` | `docs` | Record initial feature commit in gitlog.md |
+| `70d8e89` | `feat` | Implement token-gated VIP portal with pure JavaScript and Thirdweb v5 |
