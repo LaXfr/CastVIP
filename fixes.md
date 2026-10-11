@@ -56,9 +56,11 @@
      ```
   3. Audited and constrained every `<svg>` in `src/app/page.js` with explicit HTML dimensions (`width="..." height="..."`) and Tailwind classes (`className="w-... h-... shrink-0"`).
 
-### 7. Explicit NFT Indexing in ConnectButton Modal & Direct Dashboard Showcase
-- **Symptom:** Claimed VIP Passes were verified on-chain, but the Thirdweb ConnectButton profile modal did not index the testnet NFT under "View Assets -> NFTs", and the VIP dashboard did not render the pass artwork.
-- **Root Cause:** By default, Thirdweb's profile modal requires a contract whitelist map (`supportedNFTs`) to auto-index testnet ERC-721 contracts.
+### 7. ConnectButton "View Assets" Modal Tab Navigation & Indexing
+- **Symptom:** When clicking "Profile -> View Assets", claimed testnet NFTs do not appear immediately.
+- **Root Cause:**
+  1. Default Tab: Thirdweb's `detailsModal` defaults to the "Tokens" (ERC-20) tab. If the connected wallet has no ERC-20 tokens, it displays an empty screen unless the user switches to the "NFTs" tab.
+  2. Insight Indexer Delay: Thirdweb's `detailsModal` NFT tab queries `https://insight.thirdweb.com/v1/nfts`, which is an off-chain indexer. On testnets like Base Sepolia (`84532`), newly deployed contracts experience indexing latency before appearing in the off-chain API, even when on-chain ownership (`balanceOf`) is confirmed.
 - **Fix:**
-  1. Configured `supportedNFTs={{ [baseSepolia.id]: [contract.address] }}` and `detailsModal={{ supportedNFTs: { [baseSepolia.id]: [contract.address] } }}` on `<ConnectButton />`.
-  2. Implemented `useReadContract(getOwnedNFTs, ...)` and rendered the pass with `<MediaRenderer />` in a dedicated showcase card inside the VIP lounge.
+  1. Configured `supportedNFTs={{ [baseSepolia.id]: [contract.address] }}` on `<ConnectButton />`.
+  2. Configured `detailsModal={{ assetTabs: ["nft", "token"] }}` so clicking "View Assets" opens the "NFTs" tab directly by default.

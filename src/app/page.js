@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectButton, ClaimButton, useActiveAccount, useReadContract, MediaRenderer } from "thirdweb/react";
-import { balanceOf, getOwnedNFTs } from "thirdweb/extensions/erc721";
+import { ConnectButton, ClaimButton, useActiveAccount, useReadContract } from "thirdweb/react";
+import { balanceOf } from "thirdweb/extensions/erc721";
 import { client, contract } from "./client";
 import { baseSepolia } from "thirdweb/chains";
 
@@ -10,25 +10,11 @@ export default function HomePage() {
   const account = useActiveAccount();
   const [copiedKey, setCopiedKey] = useState(false);
 
-  // Reactive BigInt balance check
   const {
     data: nftBalance,
     isLoading: isCheckingBalance,
-    refetch: refetchBalance,
+    refetch,
   } = useReadContract(balanceOf, {
-    contract,
-    owner: account?.address || "",
-    queryOptions: {
-      enabled: Boolean(account?.address),
-    },
-  });
-
-  // Query owned NFT metadata
-  const {
-    data: ownedNfts,
-    isLoading: isLoadingNfts,
-    refetch: refetchOwnedNfts,
-  } = useReadContract(getOwnedNFTs, {
     contract,
     owner: account?.address || "",
     queryOptions: {
@@ -47,8 +33,16 @@ export default function HomePage() {
     }
   };
 
-  const connectButtonSupportedNFTs = {
-    [baseSepolia.id]: [contract.address],
+  const connectButtonProps = {
+    client,
+    chain: baseSepolia,
+    theme: "dark",
+    supportedNFTs: {
+      [baseSepolia.id]: [contract.address],
+    },
+    detailsModal: {
+      assetTabs: ["nft", "token"],
+    },
   };
 
   return (
@@ -95,15 +89,7 @@ export default function HomePage() {
         </div>
 
         <div className="flex items-center">
-          <ConnectButton
-            client={client}
-            chain={baseSepolia}
-            theme="dark"
-            supportedNFTs={connectButtonSupportedNFTs}
-            detailsModal={{
-              supportedNFTs: connectButtonSupportedNFTs,
-            }}
-          />
+          <ConnectButton {...connectButtonProps} />
         </div>
       </header>
 
@@ -146,15 +132,7 @@ export default function HomePage() {
                 Connect your Web3 wallet on Base Sepolia to verify your ERC-721 Membership Pass.
               </p>
               <div className="flex justify-center">
-                <ConnectButton
-                  client={client}
-                  chain={baseSepolia}
-                  theme="dark"
-                  supportedNFTs={connectButtonSupportedNFTs}
-                  detailsModal={{
-                    supportedNFTs: connectButtonSupportedNFTs,
-                  }}
-                />
+                <ConnectButton {...connectButtonProps} />
               </div>
             </div>
           )}
@@ -234,8 +212,7 @@ export default function HomePage() {
                       quantity: 1n,
                     }}
                     onTransactionConfirmed={() => {
-                      refetchBalance();
-                      refetchOwnedNfts();
+                      refetch();
                     }}
                     theme="dark"
                   >
@@ -284,46 +261,6 @@ export default function HomePage() {
                     <span className="text-sm font-bold text-emerald-300 font-mono">
                       {nftBalance?.toString() || "1"} Pass(es)
                     </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Your Membership Pass Showcase Card */}
-              <div className="bg-slate-950/60 border border-white/[0.08] rounded-2xl p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-indigo-400 font-semibold block">
-                    YOUR MEMBERSHIP PASS
-                  </span>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">
-                    Token #{ownedNfts?.[0]?.id?.toString() || "0"}
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <div className="relative shrink-0">
-                    {isLoadingNfts && !ownedNfts ? (
-                      <div className="w-32 h-32 rounded-xl bg-slate-900 border border-white/10 animate-pulse flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-indigo-500/20 border-t-indigo-400 rounded-full animate-spin" />
-                      </div>
-                    ) : (
-                      <MediaRenderer
-                        client={client}
-                        src={ownedNfts?.[0]?.metadata?.image}
-                        className="w-32 h-32 rounded-xl object-cover border border-white/10 shadow-lg shadow-indigo-500/10"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex-1 text-center sm:text-left space-y-2">
-                    <h3 className="text-xl font-bold text-white tracking-tight">
-                      {ownedNfts?.[0]?.metadata?.name || "VIP Membership Pass"}
-                    </h3>
-                    <p className="text-xs text-indigo-400 font-mono">
-                      Pass ID: #{ownedNfts?.[0]?.id?.toString() || "0"}
-                    </p>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      {ownedNfts?.[0]?.metadata?.description || "Official ERC-721 VIP Membership Pass verified on Base Sepolia. Unlocks protocol benefits and exclusive holder perks."}
-                    </p>
                   </div>
                 </div>
               </div>
