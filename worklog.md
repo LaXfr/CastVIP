@@ -11,7 +11,7 @@
 
 ## Session 1: Smart Contract Configuration & Environment Setup
 - **Date:** 2026-10-11
-- **Status:** Scaffolded & Ready for Live Credentials
+- **Status:** Complete
 - **Log:**
   - Created `.env.example` and `.env.local` containing `NEXT_PUBLIC_THIRDWEB_CLIENT_ID` and `NEXT_PUBLIC_CONTRACT_ADDRESS`.
   - Configured `.gitignore` to strictly ignore `.env*` files while preserving `.env.example`.
@@ -40,3 +40,15 @@
   - Configured `<ClaimButton />` with `quantity: 1n` and `onTransactionConfirmed={() => refetch()}`.
   - Resolved `next dev` stall by removing experimental cache flags in `next.config.mjs`.
   - Verified build with `npm run build` (compiled clean in 12.6s) and dev server with `GET / 200 OK` in 1790ms.
+
+---
+
+## Session 4: Live Base Sepolia Credentials Injection & Server Verification
+- **Date:** 2026-10-11
+- **Status:** Complete & Verified
+- **Log:**
+  - Injected live Base Sepolia contract address (`0x0d02C1ACFDae922160f9A0c9cC0Df26A9d221dC6`) and Thirdweb Client ID (`37622355ac38f5d7779ee7e7c74fab77`) into `.env.local`.
+  - Updated `src/app/client.js` to dynamically support both `NEXT_PUBLIC_CONTRACT_ADDRESS` and `NEXT_PUBLIC_DEPLOY_ADDRESS`.
+  - Updated `.env.example` to document `NEXT_PUBLIC_DEPLOY_ADDRESS`.
+  - Executed node runtime verification confirming `client.js` successfully resolved client ID and contract on Base Sepolia (`Chain ID: 84532`).
+  - Restarted development server (`npm run dev`) and confirmed clean response (`GET / 200 OK` in 1668ms).
