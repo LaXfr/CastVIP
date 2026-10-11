@@ -55,3 +55,10 @@
      svg { max-width: 100%; height: auto; }
      ```
   3. Audited and constrained every `<svg>` in `src/app/page.js` with explicit HTML dimensions (`width="..." height="..."`) and Tailwind classes (`className="w-... h-... shrink-0"`).
+
+### 7. Explicit NFT Indexing in ConnectButton Modal & Direct Dashboard Showcase
+- **Symptom:** Claimed VIP Passes were verified on-chain, but the Thirdweb ConnectButton profile modal did not index the testnet NFT under "View Assets -> NFTs", and the VIP dashboard did not render the pass artwork.
+- **Root Cause:** By default, Thirdweb's profile modal requires a contract whitelist map (`supportedNFTs`) to auto-index testnet ERC-721 contracts.
+- **Fix:**
+  1. Configured `supportedNFTs={{ [baseSepolia.id]: [contract.address] }}` and `detailsModal={{ supportedNFTs: { [baseSepolia.id]: [contract.address] } }}` on `<ConnectButton />`.
+  2. Implemented `useReadContract(getOwnedNFTs, ...)` and rendered the pass with `<MediaRenderer />` in a dedicated showcase card inside the VIP lounge.

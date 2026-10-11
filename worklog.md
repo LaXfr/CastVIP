@@ -66,3 +66,15 @@
   - Built glassmorphic centerpiece card with refined typography and states for Disconnected, Checking Balance, Locked (Non-Holder), and Unlocked (VIP Holder).
   - Added VIP Holder features: luxury status banner, copyable reward key (`VIP-BASE-2026`), and direct BaseScan contract verification link.
   - Verified with `npm run build` (compiled clean in 6.4s) and restarted dev server (`GET / 200 OK` in 682ms).
+
+---
+
+## Session 6: ConnectButton Supported NFTs & VIP Dashboard MediaRenderer Showcase
+- **Date:** 2026-10-12
+- **Status:** Complete & Verified
+- **Log:**
+  - Configured `supportedNFTs={{ [baseSepolia.id]: [contract.address] }}` and `detailsModal={{ supportedNFTs: { [baseSepolia.id]: [contract.address] } }}` on `<ConnectButton />` to enable automatic NFT indexing under "Profile -> View Assets -> NFTs".
+  - Imported `getOwnedNFTs` from `thirdweb/extensions/erc721` and `MediaRenderer` from `thirdweb/react`.
+  - Added reactive `useReadContract(getOwnedNFTs, ...)` hook with query gating and linked its `refetchOwnedNfts` callback to `<ClaimButton />`'s `onTransactionConfirmed`.
+  - Rendered "Your Membership Pass" showcase card in the Unlocked VIP view displaying the pass image via `<MediaRenderer />`, pass name, and token ID.
+  - Verified production build with `npm run build` (compiled clean in 16.4s) and verified dev server response (`GET / 200 OK`).
