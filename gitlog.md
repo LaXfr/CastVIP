@@ -13,6 +13,7 @@ Follow the Conventional Commits specification:
 
 | Commit Hash | Type | Summary |
 | :--- | :--- | :--- |
+| `676aff3` | `feat` | Fix SVG overflow and overhaul UI to luxury dark-theme Web3 portal |
 | `509038a` | `feat` | Configure live Base Sepolia credentials and dual contract address mapping |
 | `596e84d` | `docs` | Record initial feature commit in gitlog.md |
 | `70d8e89` | `feat` | Implement token-gated VIP portal with pure JavaScript and Thirdweb v5 |
