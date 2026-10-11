@@ -2,7 +2,8 @@
 
 ## Known Gotchas & Pre-emptive Fixes
 
-### 1. BigInt Serialization / Comparison Error
+### 1. BigInt Serialization / Comparison Error `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** `TypeError: Cannot mix BigInt and other types` or balance evaluation evaluating to `false`.
 - **Root Cause:** Thirdweb SDK v5 `balanceOf` returns native JavaScript `BigInt` (e.g., `1n`), not a primitive `Number`.
 - **Fix:** Compare strictly against BigInt values:
@@ -14,7 +15,8 @@
   const hasMembership = nftBalance > 0;
   ```
 
-### 2. Hydration & Empty Account Query Safety
+### 2. Hydration & Empty Account Query Safety `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** Unnecessary RPC calls to address `""` during initial render and potential hydration mismatch.
 - **Root Cause:** Next.js SSR executes client component hooks before client-side wallet connection is established.
 - **Fix:** Gate `useReadContract` with:
@@ -24,7 +26,8 @@
   }
   ```
 
-### 3. Thirdweb v5 Client Initialization Requirement
+### 3. Thirdweb v5 Client Initialization Requirement `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** `Error: clientId or secretKey must be provided` during Next.js static page compilation.
 - **Root Cause:** `createThirdwebClient` requires a non-empty string.
 - **Fix:** Provided safe fallback in `src/app/client.js`:
@@ -32,17 +35,20 @@
   const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "placeholder_client_id";
   ```
 
-### 4. Turbopack Module Resolution for `@coinbase/cdp-sdk` Dynamic Imports
+### 4. Turbopack Module Resolution for `@coinbase/cdp-sdk` Dynamic Imports `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** `Error: Module not found: Can't resolve '@x402/evm/exact/client'` and `@x402/svm/exact/client` during `npm run build`.
 - **Root Cause:** Deep dependency `@coinbase/cdp-sdk` inside `@base-org/account` contains dynamic imports for optional x402 payment clients.
 - **Fix:** Installed `@x402/core`, `@x402/evm`, and `@x402/svm` into dev/runtime dependencies to satisfy static bundle graph analysis.
 
-### 5. Dev Server Stalling on `Compiling / ...`
+### 5. Dev Server Stalling on `Compiling / ...` `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** `next dev` hung indefinitely when requesting `http://localhost:3000`.
 - **Root Cause:** Next.js 16 starter template included experimental `cacheComponents: true` and `partialPrefetching: true` in `next.config.mjs`.
-- **Fix:** Simplified `next.config.mjs` to remove experimental caching flags; dev server compiles in 751ms with HTTP 200 responses.
+- **Fix:** Simplified `next.config.mjs` to remove experimental caching flags; dev server compiles in 750ms with HTTP 200 responses.
 
-### 6. Oversized SVG Overflow & Missing Tailwind CSS Compilation
+### 6. Oversized SVG Overflow & Missing Tailwind CSS Compilation `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** Inline SVGs expanded beyond `100vw`/`100vh`, overflowing the viewport and distorting layout.
 - **Root Cause:**
   1. Tailwind CSS v4 requires `@tailwindcss/turbopack` loader rules in `next.config.mjs` to compile utilities from `@import "tailwindcss";`. Without this loader, utility classes (`w-8`, `h-8`, etc.) were omitted from the output CSS bundle.
@@ -56,7 +62,8 @@
      ```
   3. Audited and constrained every `<svg>` in `src/app/page.js` with explicit HTML dimensions (`width="..." height="..."`) and Tailwind classes (`className="w-... h-... shrink-0"`).
 
-### 7. ConnectButton "View Assets" Modal Tab Navigation & Indexing
+### 7. ConnectButton "View Assets" Modal Tab Navigation & Indexing `[RESOLVED]`
+- **Status:** Resolved
 - **Symptom:** When clicking "Profile -> View Assets", claimed testnet NFTs do not appear immediately.
 - **Root Cause:**
   1. Default Tab: Thirdweb's `detailsModal` defaults to the "Tokens" (ERC-20) tab. If the connected wallet has no ERC-20 tokens, it displays an empty screen unless the user switches to the "NFTs" tab.
@@ -64,3 +71,9 @@
 - **Fix:**
   1. Configured `supportedNFTs={{ [baseSepolia.id]: [contract.address] }}` on `<ConnectButton />`.
   2. Configured `detailsModal={{ assetTabs: ["nft", "token"] }}` so clicking "View Assets" opens the "NFTs" tab directly by default.
+
+### 8. ClaimButton Revert & User Rejection Graceful Handling `[RESOLVED]`
+- **Status:** Resolved
+- **Symptom:** If a user rejects a transaction or if the contract claim condition fails (e.g., claim limit reached or insufficient gas), the UI could trigger unhandled runtime errors.
+- **Root Cause:** `<ClaimButton />` without an explicit `onError` callback logs unhandled promise rejections.
+- **Fix:** Added stateful `onError={(err) => setClaimError(err?.message)}` callback to `<ClaimButton />` in `src/app/page.js` with a dedicated, non-blocking error notice banner.

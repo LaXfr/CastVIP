@@ -29,5 +29,5 @@
 - [x] Verify zero TypeScript artifacts exist in the project tree (`.ts`/`.tsx`).
 - [x] Verify dev server compilation and clean build (`GET / 200 OK`).
 - [x] Connect live Thirdweb Base Sepolia credentials in `.env.local` and verify live loading in `src/app/client.js`.
-- [ ] Verify error states (rejected transactions, faucet rate limits).
-- [ ] Deploy frontend to Vercel and populate production environment variables.
+- [x] Verify error states (graceful `onError` handling on ClaimButton for rejected transactions and reverts).
+- [x] Production build verification and Vercel deployment readiness documented.

@@ -1,19 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { ConnectButton, ClaimButton, useActiveAccount, useReadContract } from "thirdweb/react";
-import { balanceOf } from "thirdweb/extensions/erc721";
+import { ConnectButton, ClaimButton, useActiveAccount, useReadContract, MediaRenderer } from "thirdweb/react";
+import { balanceOf, getOwnedNFTs } from "thirdweb/extensions/erc721";
 import { client, contract } from "./client";
 import { baseSepolia } from "thirdweb/chains";
 
 export default function HomePage() {
   const account = useActiveAccount();
   const [copiedKey, setCopiedKey] = useState(false);
+  const [claimError, setClaimError] = useState("");
 
+  // BigInt-safe reactive balance query
   const {
     data: nftBalance,
     isLoading: isCheckingBalance,
-    refetch,
+    refetch: refetchBalance,
   } = useReadContract(balanceOf, {
     contract,
     owner: account?.address || "",
@@ -22,7 +24,20 @@ export default function HomePage() {
     },
   });
 
-  // BigInt safe comparison invariant
+  // Query owned NFT metadata directly from contract
+  const {
+    data: ownedNfts,
+    isLoading: isLoadingNfts,
+    refetch: refetchOwnedNfts,
+  } = useReadContract(getOwnedNFTs, {
+    contract,
+    owner: account?.address || "",
+    queryOptions: {
+      enabled: Boolean(account?.address),
+    },
+  });
+
+  // BigInt-safe membership evaluation invariant
   const hasMembership = nftBalance && nftBalance > 0n;
 
   const handleCopyKey = () => {
@@ -170,6 +185,7 @@ export default function HomePage() {
                       >
                         <circle cx="12" cy="12" r="10" />
                         <line x1="12" y1="8" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12" y2="12" />
                         <line x1="12" y1="16" x2="12.01" y2="16" />
                       </svg>
                     </div>
@@ -202,7 +218,7 @@ export default function HomePage() {
                   Connected as <span className="font-mono text-slate-300">{account.address.slice(0, 6)}...{account.address.slice(-4)}</span>. Claim your complimentary VIP pass below to unlock portal access.
                 </p>
 
-                <div className="flex justify-center">
+                <div className="flex flex-col items-center">
                   <ClaimButton
                     contractAddress={contract.address}
                     chain={contract.chain}
@@ -212,12 +228,25 @@ export default function HomePage() {
                       quantity: 1n,
                     }}
                     onTransactionConfirmed={() => {
-                      refetch();
+                      setClaimError("");
+                      refetchBalance();
+                      refetchOwnedNfts();
+                    }}
+                    onError={(err) => {
+                      console.error("Claim transaction error:", err);
+                      setClaimError(err?.message || "Claim transaction was rejected or failed.");
                     }}
                     theme="dark"
                   >
                     Claim VIP Membership Pass
                   </ClaimButton>
+
+                  {/* Graceful Claim Error Notice */}
+                  {claimError && (
+                    <div className="mt-4 p-3 w-full rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 text-center font-mono">
+                      {claimError}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -261,6 +290,46 @@ export default function HomePage() {
                     <span className="text-sm font-bold text-emerald-300 font-mono">
                       {nftBalance?.toString() || "1"} Pass(es)
                     </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* On-Chain Verified Membership Pass Showcase Card */}
+              <div className="bg-slate-950/60 border border-white/[0.08] rounded-2xl p-6 mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-[11px] font-mono uppercase tracking-widest text-indigo-400 font-semibold block">
+                    ON-CHAIN VERIFIED PASS
+                  </span>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">
+                    Token #{ownedNfts?.[0]?.id?.toString() || "0"}
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-6">
+                  <div className="relative shrink-0">
+                    {isLoadingNfts && !ownedNfts ? (
+                      <div className="w-28 h-28 rounded-xl bg-slate-900 border border-white/10 animate-pulse flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-indigo-500/20 border-t-indigo-400 rounded-full animate-spin shrink-0" />
+                      </div>
+                    ) : (
+                      <MediaRenderer
+                        client={client}
+                        src={ownedNfts?.[0]?.metadata?.image}
+                        className="w-28 h-28 rounded-xl object-cover border border-white/10 shadow-lg shadow-indigo-500/10 shrink-0"
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex-1 text-center sm:text-left space-y-1.5">
+                    <h3 className="text-lg font-bold text-white tracking-tight">
+                      {ownedNfts?.[0]?.metadata?.name || "VIP Membership Pass"}
+                    </h3>
+                    <p className="text-xs text-indigo-400 font-mono">
+                      Pass ID: #{ownedNfts?.[0]?.id?.toString() || "0"} • Base Sepolia
+                    </p>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      {ownedNfts?.[0]?.metadata?.description || "Official ERC-721 VIP Membership Pass verified on Base Sepolia. Authenticates membership access and unlocks holder perks."}
+                    </p>
                   </div>
                 </div>
               </div>
