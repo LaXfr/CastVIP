@@ -12,6 +12,7 @@ Follow the Conventional Commits specification:
 ## Commit History
 
 | Commit Hash | Type | Summary |
+| `cf403cf` | `fix` | Replace getOwnedNFTs with getNFTs and render VIP passes gallery |
 | `6b7fa43` | `chore` | Finalize VIP portal UI, NFT asset rendering, and production build audit |
 | `2414f5b` | `refactor` | Revert front page to clean layout and set assetTabs to default to NFTs |
 | `71b3f8d` | `feat` | Configure supportedNFTs in ConnectButton and render owned NFT showcase card |
