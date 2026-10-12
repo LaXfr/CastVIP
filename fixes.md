@@ -77,3 +77,20 @@
 - **Symptom:** If a user rejects a transaction or if the contract claim condition fails (e.g., claim limit reached or insufficient gas), the UI could trigger unhandled runtime errors.
 - **Root Cause:** `<ClaimButton />` without an explicit `onError` callback logs unhandled promise rejections.
 - **Fix:** Added stateful `onError={(err) => setClaimError(err?.message)}` callback to `<ClaimButton />` in `src/app/page.js` with a dedicated, non-blocking error notice banner.
+
+
+### 9. DropERC721 (ERC721A) Pass Rendering & `getOwnedNFTs` Incompatibility `[RESOLVED]`
+- **Status:** Resolved
+- **Symptom:** Claimed VIP passes were not rendering on the VIP dashboard; `getOwnedNFTs` returned empty or failed even though `balanceOf` returned > 0n.
+- **Root Cause:** Thirdweb's `DropERC721` uses the gas-efficient ERC721A standard, which does not implement `ERC721Enumerable` (`tokenOfOwnerByIndex`). Because `getOwnedNFTs` relies on enumerable indexing, calls against ERC721A contracts fail to retrieve tokens by owner address.
+- **Fix:**
+  1. Replaced `getOwnedNFTs` with `getNFTs` from `"thirdweb/extensions/erc721"`:
+     ```javascript
+     const { data: allNfts, isLoading: isLoadingNfts, refetch: refetchNfts } = useReadContract(getNFTs, {
+       contract,
+       start: 0,
+       count: 10,
+     });
+     ```
+  2. In the unlocked VIP view (`hasMembership`), rendered a sleek **"Your Claimed VIP Passes (`{nftBalance?.toString()}` Owned)"** gallery section mapping over `allNfts` up to `Number(nftBalance)` items using `<MediaRenderer client={client} src={nft.metadata.image} className="w-28 h-28 rounded-xl object-cover border border-emerald-500/30" />`, displaying `metadata.name`, `metadata.description`, and Token ID `#${nft.id.toString()}`.
+  3. Linked `refetchNfts()` alongside `refetchBalance()` in `<ClaimButton onTransactionConfirmed={...} />`.

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ConnectButton, ClaimButton, useActiveAccount, useReadContract, MediaRenderer } from "thirdweb/react";
-import { balanceOf, getOwnedNFTs } from "thirdweb/extensions/erc721";
+import { balanceOf, getNFTs } from "thirdweb/extensions/erc721";
 import { client, contract } from "./client";
 import { baseSepolia } from "thirdweb/chains";
 
@@ -24,17 +24,15 @@ export default function HomePage() {
     },
   });
 
-  // Query owned NFT metadata directly from contract
+  // Fetch the contract's minted NFTs (works with ERC721A / DropERC721 without ERC721Enumerable)
   const {
-    data: ownedNfts,
+    data: allNfts,
     isLoading: isLoadingNfts,
-    refetch: refetchOwnedNfts,
-  } = useReadContract(getOwnedNFTs, {
+    refetch: refetchNfts,
+  } = useReadContract(getNFTs, {
     contract,
-    owner: account?.address || "",
-    queryOptions: {
-      enabled: Boolean(account?.address),
-    },
+    start: 0,
+    count: 10,
   });
 
   // BigInt-safe membership evaluation invariant
@@ -230,7 +228,7 @@ export default function HomePage() {
                     onTransactionConfirmed={() => {
                       setClaimError("");
                       refetchBalance();
-                      refetchOwnedNfts();
+                      refetchNfts();
                     }}
                     onError={(err) => {
                       console.error("Claim transaction error:", err);
@@ -294,44 +292,67 @@ export default function HomePage() {
                 </div>
               </div>
 
-              {/* On-Chain Verified Membership Pass Showcase Card */}
+              {/* Your Claimed VIP Passes Gallery Section */}
               <div className="bg-slate-950/60 border border-white/[0.08] rounded-2xl p-6 mb-6">
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-[11px] font-mono uppercase tracking-widest text-indigo-400 font-semibold block">
-                    ON-CHAIN VERIFIED PASS
-                  </span>
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 font-mono">
-                    Token #{ownedNfts?.[0]?.id?.toString() || "0"}
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-6">
-                  <div className="relative shrink-0">
-                    {isLoadingNfts && !ownedNfts ? (
-                      <div className="w-28 h-28 rounded-xl bg-slate-900 border border-white/10 animate-pulse flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-indigo-500/20 border-t-indigo-400 rounded-full animate-spin shrink-0" />
-                      </div>
-                    ) : (
-                      <MediaRenderer
-                        client={client}
-                        src={ownedNfts?.[0]?.metadata?.image}
-                        className="w-28 h-28 rounded-xl object-cover border border-white/10 shadow-lg shadow-indigo-500/10 shrink-0"
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex-1 text-center sm:text-left space-y-1.5">
-                    <h3 className="text-lg font-bold text-white tracking-tight">
-                      {ownedNfts?.[0]?.metadata?.name || "VIP Membership Pass"}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+                  <div>
+                    <span className="text-[11px] font-mono uppercase tracking-widest text-emerald-400 font-semibold block">
+                      ON-CHAIN VERIFIED PASS
+                    </span>
+                    <h3 className="text-base font-bold text-white tracking-tight mt-0.5">
+                      Your Claimed VIP Passes ({nftBalance?.toString() || "1"} Owned)
                     </h3>
-                    <p className="text-xs text-indigo-400 font-mono">
-                      Pass ID: #{ownedNfts?.[0]?.id?.toString() || "0"} • Base Sepolia
-                    </p>
-                    <p className="text-xs text-slate-400 leading-relaxed">
-                      {ownedNfts?.[0]?.metadata?.description || "Official ERC-721 VIP Membership Pass verified on Base Sepolia. Authenticates membership access and unlocks holder perks."}
-                    </p>
                   </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono self-start sm:self-auto">
+                    Active Passholder
+                  </span>
                 </div>
+
+                {isLoadingNfts && (!allNfts || allNfts.length === 0) ? (
+                  <div className="w-full p-8 rounded-xl bg-slate-900/50 border border-white/5 flex items-center justify-center gap-3">
+                    <div className="w-5 h-5 border-2 border-emerald-500/20 border-t-emerald-400 rounded-full animate-spin shrink-0" />
+                    <span className="text-xs text-slate-400 font-mono">Loading VIP pass metadata...</span>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {((allNfts && allNfts.length > 0)
+                      ? (allNfts.length >= Number(nftBalance || 1n)
+                          ? allNfts.slice(0, Number(nftBalance || 1n))
+                          : Array.from({ length: Number(nftBalance || 1n) }, (_, i) => allNfts[i] || { ...allNfts[0], id: BigInt(i) }))
+                      : []
+                    ).map((nft, index) => (
+                      <div
+                        key={nft?.id?.toString() || index}
+                        className="bg-white/[0.02] border border-white/[0.06] hover:border-emerald-500/30 transition rounded-xl p-5 flex flex-col sm:flex-row items-center gap-6"
+                      >
+                        <div className="relative shrink-0">
+                          <MediaRenderer
+                            client={client}
+                            src={nft?.metadata?.image}
+                            className="w-28 h-28 rounded-xl object-cover border border-emerald-500/30 shadow-lg shadow-emerald-500/10 shrink-0"
+                          />
+                        </div>
+
+                        <div className="flex-1 text-center sm:text-left space-y-1.5">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                            <h4 className="text-lg font-bold text-white tracking-tight">
+                              {nft?.metadata?.name || "VIP Membership Pass"}
+                            </h4>
+                            <span className="inline-block text-xs font-mono px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 self-center sm:self-auto">
+                              Token #{nft?.id?.toString() || index.toString()}
+                            </span>
+                          </div>
+                          <p className="text-xs text-indigo-400 font-mono">
+                            Pass ID: #{nft?.id?.toString() || index.toString()} • Base Sepolia
+                          </p>
+                          <p className="text-xs text-slate-400 leading-relaxed">
+                            {nft?.metadata?.description || "Official ERC-721 VIP Membership Pass verified on Base Sepolia. Authenticates membership access and unlocks holder perks."}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* 2-Column Luxury Perks Grid */}

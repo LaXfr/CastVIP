@@ -109,3 +109,18 @@
   - Verified production bundle compiles cleanly with `npm run build` (zero errors, static generation complete).
   - Verified development server is running and responding with `200 OK` on `http://localhost:3000`.
   - Updated and synchronized all project documentation: `roadmap.md` (Phases 0-4 marked complete), `fixes.md` (all 8 issues marked resolved), `handoff.md` (comprehensive quickstart and Vercel deployment guide), and `gitlog.md`.
+
+
+---
+
+## Session 9: DropERC721 (ERC721A) Pass Rendering Fix & VIP Passes Gallery
+- **Date:** 2026-10-12
+- **Status:** Complete & Verified
+- **Log:**
+  - Diagnosed that `DropERC721` uses the gas-efficient ERC721A standard and does not implement `ERC721Enumerable` (`tokenOfOwnerByIndex`), which caused `getOwnedNFTs` to fail.
+  - Replaced `getOwnedNFTs` with `getNFTs` from `"thirdweb/extensions/erc721"` to query minted collection tokens directly from the contract.
+  - Implemented sleek "Your Claimed VIP Passes (`{nftBalance?.toString()}` Owned)" gallery section on the unlocked VIP dashboard.
+  - Mapped over `allNfts` up to `Number(nftBalance)` using `<MediaRenderer client={client} src={nft.metadata.image} className="w-28 h-28 rounded-xl object-cover border border-emerald-500/30" />`, rendering pass name, description, and Token ID.
+  - Linked `refetchNfts()` alongside `refetchBalance()` in `<ClaimButton onTransactionConfirmed={...} />`.
+  - Verified production build with `npm run build` (compiled clean in 29.5s) and confirmed dev server running with HTTP 200 responses.
+  - Documented root cause and solution in `fixes.md` (Issue 9).
